@@ -11,22 +11,23 @@ async function buscarGall(termo) {
     $('.listagem .produto-item').each((_, el) => {
       const nome = $(el).find('.nome-produto').text().trim();
       const preco = $(el).find('.preco-produto .preco-por').text().trim();
-      const link = 'https://www.gall.com.br' + $(el).find('a').attr('href');
+      const href = $(el).find('a').attr('href');
+      const link = href ? 'https://www.gall.com.br' + href : null;
 
-      if (nome && preco) {
+      if (nome && preco && link) {
         produtos.push({
           name: nome,
           price: preco,
           site: 'Gall',
           link,
-          frete: 'R$ 9,90 (estimado)', // valor fixo ou ajustar depois com scraping de frete
+          frete: 'R$ 9,90 (estimado)', // valor fixo, ajuste se necessário
           pagamento: 'Cartão, Pix, Boleto'
         });
       }
     });
 
     return produtos;
-  } catch (error) {
+  } catch (erro) {
     console.error('Erro ao procurar na Gall:', erro.message);
     return [];
   }
