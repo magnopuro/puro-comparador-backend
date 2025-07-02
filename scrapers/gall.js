@@ -1,36 +1,42 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-async function buscarGall(termo) {
-  const url = `https://www.gall.com.br/busca?termo=${encodeURIComponent(termo)}`;
+async function buscarGall(produto) {
   try {
-    const { data } = await axios.get(url);
+    const query = encodeURIComponent(produto);
+    const url = `https://www.gall.com.br/catalogsearch/result/?q=${query}`;
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    });
+
     const $ = cheerio.load(data);
     const produtos = [];
 
-    $('.listagem .produto-item').each((_, el) => {
-      const nome = $(el).find('.nome-produto').text().trim();
-      const preco = $(el).find('.preco-produto .preco-por').text().trim();
-      const href = $(el).find('a').attr('href');
-      const link = href ? 'https://www.gall.com.br' + href : null;
-
-      if (nome && preco && link) {
+    $('.product-item-info').each((_, el) => {
+      const nome = $(el).find('.product-item-name a').text().trim();
+      const preco = $(el).find('.price').first().text().trim();
+      const href = $(el).find('.product-item-name a').attr('href');
+      if (nome && preco && href) {
         produtos.push({
           name: nome,
           price: preco,
           site: 'Gall',
-          link,
-          frete: 'R$ 9,90 (estimado)', // valor fixo, ajuste se necessário
-          pagamento: 'Cartão, Pix, Boleto'
+          link: href
         });
       }
     });
 
     return produtos;
   } catch (erro) {
-    console.error('Erro ao procurar na Gall:', erro.message);
+    console.error('Erro ao buscar na Gall:', erro.message);
     return [];
   }
 }
+
+// Exemplo de uso local:
+// buscarGall('preservativo').then(console.log);
 
 module.exports = buscarGall;
