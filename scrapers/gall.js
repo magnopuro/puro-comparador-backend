@@ -27,7 +27,7 @@ async function buscarGall(termo) {
 
     return produtos;
   } catch (error) {
-    console.error('Erro ao buscar na Gall:', error.message);
+    console.error('Erro ao procurar na Gall:', erro.message);
     return [];
   }
 }
