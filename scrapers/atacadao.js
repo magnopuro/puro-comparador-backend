@@ -15,15 +15,16 @@ async function buscarAtacadao(produto) {
     const $ = cheerio.load(data);
     const produtos = [];
 
-    $('.product-item-info').each((i, el) => {
+    $('.product-item-info').each((_, el) => {
       const nome = $(el).find('.product-item-name a').text().trim();
       const preco = $(el).find('.price').first().text().trim();
-      const link = $(el).find('.product-item-name a').attr('href');
+      const href = $(el).find('.product-item-name a').attr('href');
+      const link = href ? href : null;
 
       if (nome && preco && link) {
         produtos.push({
-          nome,
-          preco,
+          name: nome, // padronizado para 'name'
+          price: preco, // padronizado para 'price'
           site: 'Sexshop Atacadão',
           link,
           frete: 'Grátis a partir de R$ 150 (estimado)',
