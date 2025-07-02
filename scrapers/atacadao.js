@@ -1,24 +1,42 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-module.exports = async function buscarAtacadao(termo) {
+async function buscarAtacadao(produto) {
   try {
-    const url = `https://www.sexshopatacadao.com.br/busca?busca=${encodeURIComponent(termo)}`;
-    const { data } = await axios.get(url);
+    const query = encodeURIComponent(produto);
+    const url = `https://www.sexshopatacadao.com.br/catalogsearch/result/?q=${query}`;
+
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      }
+    });
+
     const $ = cheerio.load(data);
     const produtos = [];
 
-    $('.listagem-item').each((_, el) => {
-      const name = $(el).find('.nome-produto a').text().trim();
-      const price = $(el).find('.preco-produto').first().text().trim();
-      const link = $(el).find('.nome-produto a').attr('href');
-      if (name && price && link) {
-        produtos.push({ site: "Atacadão", name, price, link });
+    $('.product-item-info').each((i, el) => {
+      const nome = $(el).find('.product-item-name a').text().trim();
+      const preco = $(el).find('.price').first().text().trim();
+      const link = $(el).find('.product-item-name a').attr('href');
+
+      if (nome && preco && link) {
+        produtos.push({
+          nome,
+          preco,
+          site: 'Sexshop Atacadão',
+          link,
+          frete: 'Grátis a partir de R$ 150 (estimado)',
+          pagamento: 'Pix, Boleto, Cartão'
+        });
       }
     });
 
     return produtos;
-  } catch (err) {
+  } catch (erro) {
+    console.error('Erro ao procurar no Atacadão:', erro.message);
     return [];
   }
-};
+}
+
+module.exports = buscarAtacadao;
