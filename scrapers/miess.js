@@ -11,7 +11,9 @@ async function buscarMiess(termo) {
     $('.item').each((_, el) => {
       const nome = $(el).find('.product-name a').text().trim();
       const preco = $(el).find('.price').first().text().trim();
-      const link = $(el).find('.product-name a').attr('href');
+      const href = $(el).find('.product-name a').attr('href');
+      const link = href ? href : null;
+
       if (nome && preco && link) {
         produtos.push({
           name: nome,
