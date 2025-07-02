@@ -13,9 +13,15 @@ async function buscarAtacadao(produto) {
     });
 
     const $ = cheerio.load(data);
-    const produtos = [];
 
-    $('.product-item-info').each((_, el) => {
+    // Log do HTML de retorno para debug
+    // console.log(data); // ATENÇÃO: pode ser muito grande!
+
+    const produtos = [];
+    const itens = $('.product-item-info');
+    console.log('Itens encontrados:', itens.length);
+
+    itens.each((_, el) => {
       const nome = $(el).find('.product-item-name a').text().trim();
       const preco = $(el).find('.price').first().text().trim();
       const href = $(el).find('.product-item-name a').attr('href');
@@ -23,8 +29,8 @@ async function buscarAtacadao(produto) {
 
       if (nome && preco && link) {
         produtos.push({
-          name: nome, // padronizado para 'name'
-          price: preco, // padronizado para 'price'
+          name: nome,
+          price: preco,
           site: 'Sexshop Atacadão',
           link,
           frete: 'Grátis a partir de R$ 150 (estimado)',
