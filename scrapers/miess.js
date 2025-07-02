@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-module.exports = async function buscarMiess(termo) {
+async function buscarMiess(termo) {
   try {
     const url = `https://www.miess.com.br/catalogsearch/result/?q=${encodeURIComponent(termo)}`;
     const { data } = await axios.get(url);
@@ -9,16 +9,26 @@ module.exports = async function buscarMiess(termo) {
     const produtos = [];
 
     $('.item').each((_, el) => {
-      const name = $(el).find('.product-name a').text().trim();
-      const price = $(el).find('.price').first().text().trim();
+      const nome = $(el).find('.product-name a').text().trim();
+      const preco = $(el).find('.price').first().text().trim();
       const link = $(el).find('.product-name a').attr('href');
-      if (name && price && link) {
-        produtos.push({ site: "Miess", name, price, link });
+      if (nome && preco && link) {
+        produtos.push({
+          name: nome,
+          price: preco,
+          site: 'Miess',
+          link,
+          frete: 'R$ 19,90 (estimado)', // ajuste conforme necessário
+          pagamento: 'Cartão, Pix, Boleto'
+        });
       }
     });
 
     return produtos;
-  } catch (err) {
+  } catch (erro) {
+    console.error('Erro ao procurar na Miess:', erro.message);
     return [];
   }
-};
+}
+
+module.exports = buscarMiess;
