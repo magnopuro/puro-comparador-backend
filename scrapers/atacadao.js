@@ -1,28 +1,43 @@
-const puppeteer = require('puppeteer');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 async function buscarAtacadao(produto) {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.goto(`https://www.sexshopatacadao.com.br/catalogsearch/result/?q=${encodeURIComponent(produto)}`, { waitUntil: 'networkidle2' });
-  const produtos = await page.evaluate(() => {
-    const items = Array.from(document.querySelectorAll('.product-item-info'));
-    return items.map(el => {
-      const name = el.querySelector('.product-item-name a')?.innerText.trim();
-      const price = el.querySelector('.price')?.innerText.trim();
-      const link = el.querySelector('.product-item-name a')?.href;
-      if (name && price && link) {
-        return {
-          name,
-          price,
-          site: 'Sexshop Atacadão',
-          link,
-          frete: 'Grátis a partir de R$ 150 (estimado)',
-          pagamento: 'Pix, Boleto, Cartão'
-        };
+  try {
+    const query = encodeURIComponent(produto);
+    const url = `https://www.sexshopatacadao.com.br/catalogsearch/result/?q=${query}`;
+
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
       }
-      return null;
-    }).filter(Boolean);
-  });
-  await browser.close();
-  return produtos;
+    });
+
+    const $ = cheerio.load(data);
+    const produtos = [];
+
+    $('.product-item-info').each((_, el) => {
+      const nome = $(el).find('.product-item-name a').text().trim();
+      const preco = $(el).find('.price').first().text().trim();
+      const href = $(el).find('.product-item-name a').attr('href');
+      if (nome && preco && href) {
+        produtos.push({
+          name: nome,
+          price: preco,
+          site: 'Sexshop Atacadão',
+          link: href
+        });
+      }
+    });
+
+    return produtos;
+  } catch (erro) {
+    console.error('Erro ao procurar no Atacadão:', erro.message);
+    return [];
+  }
 }
+
+// Exemplo de uso local:
+// buscarAtacadao('gel').then(console.log);
+
+module.exports = buscarAtacadao;
