@@ -1,24 +1,35 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-module.exports = async function buscarGall(termo) {
+async function buscarGall(termo) {
+  const url = `https://www.gall.com.br/busca?termo=${encodeURIComponent(termo)}`;
   try {
-    const url = `https://www.gall.com.br/catalogsearch/result/?q=${encodeURIComponent(termo)}`;
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
     const produtos = [];
 
-    $('.product-item-info').each((_, el) => {
-      const name = $(el).find('.product-item-link').text().trim();
-      const price = $(el).find('.price').first().text().trim();
-      const link = $(el).find('.product-item-link').attr('href');
-      if (name && price && link) {
-        produtos.push({ site: "Gall", name, price, link });
+    $('.listagem .produto-item').each((_, el) => {
+      const nome = $(el).find('.nome-produto').text().trim();
+      const preco = $(el).find('.preco-produto .preco-por').text().trim();
+      const link = 'https://www.gall.com.br' + $(el).find('a').attr('href');
+
+      if (nome && preco) {
+        produtos.push({
+          name: nome,
+          price: preco,
+          site: 'Gall',
+          link,
+          frete: 'R$ 9,90 (estimado)', // valor fixo ou ajustar depois com scraping de frete
+          pagamento: 'Cartão, Pix, Boleto'
+        });
       }
     });
 
     return produtos;
-  } catch (err) {
+  } catch (error) {
+    console.error('Erro ao buscar na Gall:', error.message);
     return [];
   }
-};
+}
+
+module.exports = buscarGall;
