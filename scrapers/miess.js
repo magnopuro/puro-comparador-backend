@@ -1,27 +1,32 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-async function buscarMiess(termo) {
+async function buscarMiess(produto) {
   try {
-    const url = `https://www.miess.com.br/catalogsearch/result/?q=${encodeURIComponent(termo)}`;
-    const { data } = await axios.get(url);
+    const query = encodeURIComponent(produto);
+    const url = `https://www.miess.com.br/catalogsearch/result/?q=${query}`;
+
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    });
+
     const $ = cheerio.load(data);
     const produtos = [];
 
-    $('.item').each((_, el) => {
-      const nome = $(el).find('.product-name a').text().trim();
+    $('.product-item-info').each((_, el) => {
+      const nome = $(el).find('.product-item-name a').text().trim();
       const preco = $(el).find('.price').first().text().trim();
-      const href = $(el).find('.product-name a').attr('href');
-      const link = href ? href : null;
+      const href = $(el).find('.product-item-name a').attr('href');
 
-      if (nome && preco && link) {
+      if (nome && preco && href) {
         produtos.push({
           name: nome,
           price: preco,
           site: 'Miess',
-          link,
-          frete: 'R$ 19,90 (estimado)', // ajuste conforme necessário
-          pagamento: 'Cartão, Pix, Boleto'
+          link: href
         });
       }
     });
@@ -32,5 +37,8 @@ async function buscarMiess(termo) {
     return [];
   }
 }
+
+// Exemplo de uso:
+// buscarMiess('gel').then(console.log);
 
 module.exports = buscarMiess;
